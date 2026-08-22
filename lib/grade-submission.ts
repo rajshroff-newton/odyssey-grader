@@ -119,7 +119,6 @@ export async function gradeSubmission(params: {
       body: JSON.stringify({
         model,
         max_tokens: 2000,
-        temperature: 0.2,
         system: prompt.system,
         messages: [{ role: "user", content: prompt.user }],
       }),
