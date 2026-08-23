@@ -73,12 +73,14 @@ export async function POST(req: NextRequest) {
       hallucination_check: result.grade.hallucination_check ?? null,
       model,
       raw_response: result.raw,
+      prompt_system: result.promptSystem,
+      prompt_user: result.promptUser,
     })
     .select()
     .single();
 
   if (saveError) {
-    // The grade itself succeeded even if saving it didn't — still return it,
+    // The grade itself succeeded even if saving it didn't - still return it,
     // just flagged as unsaved, rather than throwing the result away.
     return NextResponse.json({ grade: result.grade, cached: false, saveError: saveError.message });
   }

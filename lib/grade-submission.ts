@@ -122,7 +122,7 @@ export async function gradeSubmission(params: {
   taskId: string;
   portraitKey: string;
   rewriteText: string;
-}): Promise<{ grade: Grade; raw: string } | { error: string }> {
+}): Promise<{ grade: Grade; raw: string; promptUser: string; promptSystem: string } | { error: string }> {
   const prompt = buildPrompt(params);
   if ("error" in prompt) return { error: prompt.error };
 
@@ -165,7 +165,7 @@ export async function gradeSubmission(params: {
 
   try {
     const parsed = JSON.parse(stripCodeFences(text));
-    return { grade: parsed as Grade, raw: text };
+    return { grade: parsed as Grade, raw: text, promptUser: prompt.user, promptSystem: prompt.system };
   } catch {
     return { error: `Could not parse the model's response as JSON. Raw response: ${text.slice(0, 500)}` };
   }

@@ -16,6 +16,8 @@ type GradeRow = {
   compliance_concerns?: string[];
   hallucination_check?: string;
   created_at?: string;
+  prompt_system?: string;
+  prompt_user?: string;
 };
 
 type SubmissionRow = {
@@ -81,6 +83,7 @@ export default function GraderPage() {
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [rewriteTexts, setRewriteTexts] = useState<Record<string, string>>({});
   const [rewriteLoading, setRewriteLoading] = useState<string | null>(null);
+  const [promptViewId, setPromptViewId] = useState<string | null>(null);
 
   const [sortKey, setSortKey] = useState<SortKey>("time");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -368,6 +371,43 @@ export default function GraderPage() {
                           <span className="font-semibold">Data check:</span>{" "}
                           {s.grade.hallucination_check}
                         </p>
+                      )}
+
+                      {s.grade.prompt_user && (
+                        <div className="mt-3 border-t border-line pt-2">
+                          <button
+                            onClick={() =>
+                              setPromptViewId(promptViewId === s.id ? null : s.id)
+                            }
+                            className="focus-ring text-xs font-medium text-brass hover:underline"
+                          >
+                            {promptViewId === s.id
+                              ? "Hide prompt sent to the model"
+                              : "View exact prompt sent to the model"}
+                          </button>
+                          {promptViewId === s.id && (
+                            <div className="mt-2 space-y-2">
+                              {s.grade.prompt_system && (
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+                                    System prompt
+                                  </p>
+                                  <pre className="mt-1 max-h-64 overflow-y-auto whitespace-pre-wrap rounded border border-line bg-white px-2 py-1.5 text-[11px] leading-relaxed text-ink/80">
+                                    {s.grade.prompt_system}
+                                  </pre>
+                                </div>
+                              )}
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-ink/50">
+                                  User prompt (portrait profile + original report + rewrite)
+                                </p>
+                                <pre className="mt-1 max-h-96 overflow-y-auto whitespace-pre-wrap rounded border border-line bg-white px-2 py-1.5 text-[11px] leading-relaxed text-ink/80">
+                                  {s.grade.prompt_user}
+                                </pre>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   )}

@@ -26,7 +26,7 @@ export async function GET() {
   const ids = (submissions ?? []).map((s) => s.id);
   const { data: grades, error: gradeError } = await supabaseAdmin
     .from("submission_grades")
-    .select("submission_id, verdict, confidence, rewrite_portrait_fit, original_portrait_fit, created_at")
+    .select("submission_id, verdict, confidence, rewrite_portrait_fit, original_portrait_fit, created_at, prompt_system, prompt_user")
     .in("submission_id", ids.length > 0 ? ids : ["00000000-0000-0000-0000-000000000000"]);
 
   if (gradeError) {
