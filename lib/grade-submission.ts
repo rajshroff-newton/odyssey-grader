@@ -1,5 +1,5 @@
 import { REPORTS, fullReportText, TaskKey } from "@/data/reports";
-import { PORTRAITS } from "@/data/portraits";
+import { PORTRAITS, RISK_APPETITE_NOTE } from "@/data/portraits";
 
 export type GradeVerdict = "better" | "worse" | "about_the_same";
 
@@ -34,15 +34,19 @@ function buildPrompt(params: {
   const portrait = PORTRAITS.find((p) => p.key === params.portraitKey);
   if (!portrait) return { error: `No hardcoded portrait matches "${params.portraitKey}".` };
 
-  const system = `You are grading whether an expert's rewrite of a financial market report is an improvement over the original, strictly from the point of view of one specific target reader. You are not grading writing quality in the abstract — a rewrite that reads beautifully but doesn't serve this reader's actual needs is not an improvement, and a rewrite that reads plainly but is exactly what this reader needs is.
+  const system = `You are grading whether an expert's rewrite of a financial market report is an improvement over the original, strictly from the point of view of one specific target reader. You are not grading writing quality in the abstract - a rewrite that reads beautifully but doesn't serve this reader's actual needs is not an improvement, and a rewrite that reads plainly but is exactly what this reader needs is.
 
 Judge only against the reader profile you're given. Do not apply your own general sense of good financial writing where it conflicts with what this specific reader wants.
 
-Also flag, separately from the portrait-fit judgment:
-- Any invented data — numbers, prices, or claims that don't appear in the original and aren't clearly framed as the writer's own analysis (as opposed to a fact).
-- Any compliance problem — unconditional buy/sell instructions, promised returns, or advice with no stated condition attached. Conditional scenario reasoning ("if X then Y, target Z, invalidated below W") is fine and is not a violation.
+The profile below distinguishes vocabulary the reader already knows (explaining it is padding that displaces real content) from vocabulary that must be handled somehow (either explained plainly, for G1, or inline-glossed in 5 to 12 words without a teaching aside, for G2). Getting this distinction backwards - explaining what's assumed known, or assuming what needs handling - is itself a real failure mode, not a neutral choice, and should show up in your weaknesses if it happens.
 
-Respond with ONLY a JSON object — no markdown code fences, no preamble, no text outside the JSON. Match this exact shape:
+Where the profile includes a "typical failure" note or worked examples, treat those as your primary calibration reference for what counts as a strength or a weakness for this specific portrait - they are more reliable than your own general judgment.
+
+Also flag, separately from the portrait-fit judgment:
+- Any invented data - numbers, prices, or claims that don't appear in the original and aren't clearly framed as the writer's own analysis (as opposed to a fact).
+- Any compliance problem - unconditional buy/sell instructions, promised returns, or advice with no stated condition attached. Conditional scenario reasoning ("if X then Y, target Z, invalidated below W") is fine and is not a violation.
+
+Respond with ONLY a JSON object - no markdown code fences, no preamble, no text outside the JSON. Match this exact shape:
 
 {
   "verdict": "better" | "worse" | "about_the_same",
@@ -56,18 +60,38 @@ Respond with ONLY a JSON object — no markdown code fences, no preamble, no tex
   "hallucination_check": "<one sentence: does the rewrite appear to invent data not present in or derivable from the original? Name the specific figure if so, or state that none was found>"
 }
 
-strengths, weaknesses, and compliance_concerns should be empty arrays if there's nothing to report — do not pad them with generic filler.`;
+strengths, weaknesses, and compliance_concerns should be empty arrays if there's nothing to report - do not pad them with generic filler.`;
+
+  const glossSection = portrait.glossRule
+    ? `\n\nThe gloss-vs-teach rule for this portrait (read carefully, this is the primary scoring mechanism):\n${portrait.glossRule}`
+    : "";
+
+  const examplesSection = portrait.concreteExamples
+    ? `\n\nConcrete calibration examples for this portrait:\n${portrait.concreteExamples}`
+    : "";
 
   const user = `TARGET READER PROFILE (${portrait.label}, ${portrait.band})
 
 In their own words: "${portrait.script}"
 
-What they want: ${portrait.wants}
+Platform behavior: ${portrait.platformBehavior}
+Portfolio: ${portrait.portfolio}
+Cross-asset posture: ${portrait.crossAssetPosture}
+
+What they open a report to find out: ${portrait.wants}
 What loses them: ${portrait.loses}
-What must be explained to them: ${portrait.mustExplain}
+
+Vocabulary already assumed known (explaining this is padding, a real weakness): ${portrait.assumedKnown}
+Vocabulary that must be handled (explained plainly for G1, or inline-glossed for G2 - see below): ${portrait.mustExplain}
+${glossSection}
 Actionability ceiling (what the content is allowed to give them): ${portrait.actionCeiling}
 Risk framing expectation: ${portrait.riskFraming}
+Typical failure mode against this portrait: ${portrait.typicalFailureMode}
+${examplesSection}
+
 What a good rewrite for this reader must do: ${portrait.rewriteMust}
+
+Note on risk appetite: ${RISK_APPETITE_NOTE}
 
 ---
 
