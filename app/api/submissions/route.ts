@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+ï»¿import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
-// Next.js caches GET route handlers by default unless told otherwise — this
+// Next.js caches GET route handlers by default unless told otherwise - this
 // route needs a fresh Supabase query on every request, since the whole
 // point is showing new submissions as they come in.
 export const dynamic = "force-dynamic";
