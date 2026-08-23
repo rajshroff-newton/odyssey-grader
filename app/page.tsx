@@ -68,6 +68,21 @@ function sortSubmissions(rows: SubmissionRow[], key: SortKey, dir: SortDir): Sub
   return sorted;
 }
 
+// Keeps only the most recent submission per (email, task) pair - same
+// grouping key the main app uses for attempt_number, so "latest" here
+// matches what "latest attempt" means everywhere else in this project.
+function keepLatestPerUserTask(rows: SubmissionRow[]): SubmissionRow[] {
+  const latestByKey = new Map<string, SubmissionRow>();
+  for (const row of rows) {
+    const key = `${row.attempter_email.toLowerCase()}::${row.task_id}`;
+    const existing = latestByKey.get(key);
+    if (!existing || new Date(row.created_at) > new Date(existing.created_at)) {
+      latestByKey.set(key, row);
+    }
+  }
+  return Array.from(latestByKey.values());
+}
+
 function verdictColor(verdict: string) {
   if (verdict === "better") return "border-ok bg-ok/10 text-ok";
   if (verdict === "worse") return "border-warn bg-warn/10 text-warn";
@@ -87,6 +102,7 @@ export default function GraderPage() {
 
   const [sortKey, setSortKey] = useState<SortKey>("time");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
+  const [latestOnly, setLatestOnly] = useState(false);
 
   function toggleSort(key: SortKey) {
     if (key === sortKey) {
@@ -97,7 +113,8 @@ export default function GraderPage() {
     }
   }
 
-  const visibleSubmissions = sortSubmissions(submissions, sortKey, sortDir);
+  const filteredSubmissions = latestOnly ? keepLatestPerUserTask(submissions) : submissions;
+  const visibleSubmissions = sortSubmissions(filteredSubmissions, sortKey, sortDir);
 
   async function loadSubmissions() {
     setLoadingList(true);
@@ -176,31 +193,48 @@ export default function GraderPage() {
           {loadingList ? "Refreshing…" : "↻ Refresh"}
         </button>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-ink/40">Sort by</span>
-          {(
-            [
-              ["user", "User"],
-              ["task", "Task"],
-              ["time", "Time submitted"],
-            ] as [SortKey, string][]
-          ).map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => toggleSort(key)}
-              className={`focus-ring rounded border px-3 py-1.5 text-xs font-medium ${
-                sortKey === key
-                  ? "border-brass bg-brass/10 text-brass"
-                  : "border-line text-ink/60 hover:border-ink/30"
-              }`}
-            >
-              {label}
-              {sortKey === key && (sortDir === "asc" ? " ↑" : " ↓")}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            onClick={() => setLatestOnly((prev) => !prev)}
+            className={`focus-ring rounded border px-3 py-1.5 text-xs font-medium ${
+              latestOnly
+                ? "border-brass bg-brass/10 text-brass"
+                : "border-line text-ink/60 hover:border-ink/30"
+            }`}
+          >
+            {latestOnly ? "✓ Latest attempt only" : "Latest attempt only"}
+          </button>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-ink/40">Sort by</span>
+            {(
+              [
+                ["user", "User"],
+                ["task", "Task"],
+                ["time", "Time submitted"],
+              ] as [SortKey, string][]
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => toggleSort(key)}
+                className={`focus-ring rounded border px-3 py-1.5 text-xs font-medium ${
+                  sortKey === key
+                    ? "border-brass bg-brass/10 text-brass"
+                    : "border-line text-ink/60 hover:border-ink/30"
+                }`}
+              >
+                {label}
+                {sortKey === key && (sortDir === "asc" ? " ↑" : " ↓")}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <p className="text-xs text-ink/50">{submissions.length} submissions</p>
+        <p className="text-xs text-ink/50">
+          {latestOnly
+            ? `${visibleSubmissions.length} shown (${submissions.length} total)`
+            : `${submissions.length} submissions`}
+        </p>
       </div>
 
       {listError && <p className="mt-3 text-sm text-warn">{listError}</p>}
