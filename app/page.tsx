@@ -7,7 +7,6 @@ import { PORTRAITS } from "@/data/portraits";
 type GradeRow = {
   submission_id?: string;
   verdict: string;
-  confidence: string;
   original_portrait_fit: number;
   rewrite_portrait_fit: number;
   summary?: string;
@@ -34,6 +33,7 @@ type SubmissionRow = {
   rewrite_seconds: number | null;
   total_seconds: number | null;
   grade: GradeRow | null;
+  canary_hit: boolean;
 };
 
 type SortKey = "user" | "task" | "time";
@@ -246,7 +246,21 @@ export default function GraderPage() {
           const expanded = expandedId === s.id;
 
           return (
-            <div key={s.id} className="rounded-lg border border-line bg-white p-4">
+            <div
+              key={s.id}
+              className={`rounded-lg border bg-white p-4 ${
+                s.canary_hit ? "border-warn border-2" : "border-line"
+              }`}
+            >
+              {s.canary_hit && (
+                <div className="mb-3 rounded border border-warn bg-warn/10 px-3 py-2 text-xs font-semibold text-warn">
+                  ⚠ Hidden canary phrase found in this rewrite — this report's
+                  page has a fabricated, invisible-to-humans detail planted in
+                  it, and it showed up in what was submitted. That's strong
+                  evidence this was read and/or written by an automated
+                  process rather than typed by a person looking at the page.
+                </div>
+              )}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-sm font-medium">
@@ -300,8 +314,19 @@ export default function GraderPage() {
                     <p className="font-semibold">{s.grade.rewrite_portrait_fit} / 5</p>
                   </div>
                   <div>
-                    <p className="text-ink/40">Confidence</p>
-                    <p className="font-semibold capitalize">{s.grade.confidence}</p>
+                    <p className="text-ink/40">Fit change</p>
+                    <p
+                      className={`font-semibold ${
+                        s.grade.rewrite_portrait_fit > s.grade.original_portrait_fit
+                          ? "text-ok"
+                          : s.grade.rewrite_portrait_fit < s.grade.original_portrait_fit
+                            ? "text-warn"
+                            : "text-ink/60"
+                      }`}
+                    >
+                      {s.grade.rewrite_portrait_fit - s.grade.original_portrait_fit > 0 ? "+" : ""}
+                      {s.grade.rewrite_portrait_fit - s.grade.original_portrait_fit}
+                    </p>
                   </div>
                   <div>
                     <p className="text-ink/40">Word count</p>

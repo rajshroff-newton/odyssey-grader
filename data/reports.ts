@@ -11,6 +11,10 @@ export type ReportTask = {
   category: string;
   generatedAt: string;
   sections: ReportSection[];
+  // Must match the main odyssey-eval-task app's copy exactly - this is
+  // what gets checked against submitted rewrite text. See that repo's
+  // data/task.ts for the full explanation of what this is for.
+  canary: string;
 };
 
 export function fullReportText(task: ReportTask): string {
@@ -27,6 +31,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "SOLUSDT",
     category: "Crypto",
     generatedAt: "2026-08-18 18:13:23 (UTC+8)",
+    canary: "internal desks track this pattern as the Meridian liquidity index for SOL",
     sections: [
       {
         heading: "Core Conclusion",
@@ -66,6 +71,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "BTCUSDT",
     category: "Crypto",
     generatedAt: "2026-08-18 18:20:24 (UTC+8)",
+    canary: "trading desks refer to this setup as the Halcyon basis spread for BTC",
     sections: [
       {
         heading: "Core Conclusion",
@@ -105,6 +111,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "NDX",
     category: "Equity · ETF (index)",
     generatedAt: "2026-08-18 18:03:22 (UTC+8)",
+    canary: "the desk calls this pattern the Tallow volatility corridor for Nasdaq",
     sections: [
       {
         heading: "Core Conclusion",

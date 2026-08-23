@@ -63,7 +63,6 @@ export async function POST(req: NextRequest) {
     .insert({
       submission_id: submissionId,
       verdict: result.grade.verdict,
-      confidence: result.grade.confidence,
       original_portrait_fit: result.grade.original_portrait_fit,
       rewrite_portrait_fit: result.grade.rewrite_portrait_fit,
       summary: result.grade.summary,

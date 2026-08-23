@@ -43,3 +43,12 @@ create index if not exists submission_grades_submission_id_idx
 alter table public.submission_grades
   add column if not exists prompt_system text,
   add column if not exists prompt_user text;
+
+-- confidence was dropped: it was ambiguous (never defined what it measured
+-- confidence IN - the verdict? the exact score? something else?) and mostly
+-- redundant with the original/rewrite fit score delta, which already
+-- conveys both direction and magnitude unambiguously. Relaxed to nullable
+-- rather than dropped outright, so existing graded rows that have a value
+-- keep it.
+alter table public.submission_grades
+  alter column confidence drop not null;

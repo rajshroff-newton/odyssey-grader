@@ -5,7 +5,6 @@ export type GradeVerdict = "better" | "worse" | "about_the_same";
 
 export type Grade = {
   verdict: GradeVerdict;
-  confidence: "high" | "medium" | "low";
   original_portrait_fit: number; // 1-5
   rewrite_portrait_fit: number; // 1-5
   summary: string;
@@ -50,7 +49,6 @@ Respond with ONLY a JSON object - no markdown code fences, no preamble, no text 
 
 {
   "verdict": "better" | "worse" | "about_the_same",
-  "confidence": "high" | "medium" | "low",
   "original_portrait_fit": <integer 1-5, how well the ORIGINAL report serves this reader>,
   "rewrite_portrait_fit": <integer 1-5, how well the REWRITE serves this reader>,
   "summary": "<2-3 sentences giving your overall verdict and why>",
