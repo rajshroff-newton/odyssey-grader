@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // GET /api/submissions/:id
 //
 // Returns just the rewrite_text for one submission. Split out from the list
@@ -20,5 +23,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     return NextResponse.json({ error: "Submission not found." }, { status: 404 });
   }
 
-  return NextResponse.json({ rewrite_text: data.rewrite_text });
+  return NextResponse.json(
+    { rewrite_text: data.rewrite_text },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }

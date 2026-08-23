@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
+// Next.js caches GET route handlers by default unless told otherwise — this
+// route needs a fresh Supabase query on every request, since the whole
+// point is showing new submissions as they come in.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // GET /api/submissions
 //
 // Lists every row in report_submissions, most recent first, plus whatever
@@ -33,5 +39,8 @@ export async function GET() {
     grade: gradeBySubmission.get(s.id) ?? null,
   }));
 
-  return NextResponse.json({ submissions: merged });
+  return NextResponse.json(
+    { submissions: merged },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }
