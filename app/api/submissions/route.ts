@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 // Next.js caches GET route handlers by default unless told otherwise - this
@@ -44,3 +44,4 @@ export async function GET() {
     { headers: { "Cache-Control": "no-store" } }
   );
 }
+

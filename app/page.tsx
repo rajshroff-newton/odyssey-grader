@@ -34,11 +34,36 @@ type SubmissionRow = {
   grade: GradeRow | null;
 };
 
+type SortKey = "user" | "task" | "time";
+type SortDir = "asc" | "desc";
+
 function findTaskKey(taskId: string): TaskKey | null {
   const entry = (Object.entries(REPORTS) as [TaskKey, (typeof REPORTS)[TaskKey]][]).find(
     ([, r]) => r.taskId === taskId
   );
   return entry ? entry[0] : null;
+}
+
+function reportLabel(taskId: string): string {
+  const key = findTaskKey(taskId);
+  return key ? REPORTS[key].label : taskId;
+}
+
+function sortSubmissions(rows: SubmissionRow[], key: SortKey, dir: SortDir): SubmissionRow[] {
+  const sorted = [...rows].sort((a, b) => {
+    let cmp = 0;
+    if (key === "user") {
+      cmp =
+        a.attempter_name.localeCompare(b.attempter_name) ||
+        a.attempter_email.localeCompare(b.attempter_email);
+    } else if (key === "task") {
+      cmp = reportLabel(a.task_id).localeCompare(reportLabel(b.task_id));
+    } else {
+      cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    }
+    return dir === "asc" ? cmp : -cmp;
+  });
+  return sorted;
 }
 
 function verdictColor(verdict: string) {
@@ -56,6 +81,20 @@ export default function GraderPage() {
   const [gradingId, setGradingId] = useState<string | null>(null);
   const [rewriteTexts, setRewriteTexts] = useState<Record<string, string>>({});
   const [rewriteLoading, setRewriteLoading] = useState<string | null>(null);
+
+  const [sortKey, setSortKey] = useState<SortKey>("time");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
+
+  function toggleSort(key: SortKey) {
+    if (key === sortKey) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir(key === "time" ? "desc" : "asc");
+    }
+  }
+
+  const visibleSubmissions = sortSubmissions(submissions, sortKey, sortDir);
 
   async function loadSubmissions() {
     setLoadingList(true);
@@ -125,7 +164,7 @@ export default function GraderPage() {
         </p>
       </header>
 
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <button
           onClick={loadSubmissions}
           disabled={loadingList}
@@ -133,13 +172,38 @@ export default function GraderPage() {
         >
           {loadingList ? "Refreshing…" : "↻ Refresh"}
         </button>
+
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-ink/40">Sort by</span>
+          {(
+            [
+              ["user", "User"],
+              ["task", "Task"],
+              ["time", "Time submitted"],
+            ] as [SortKey, string][]
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => toggleSort(key)}
+              className={`focus-ring rounded border px-3 py-1.5 text-xs font-medium ${
+                sortKey === key
+                  ? "border-brass bg-brass/10 text-brass"
+                  : "border-line text-ink/60 hover:border-ink/30"
+              }`}
+            >
+              {label}
+              {sortKey === key && (sortDir === "asc" ? " ↑" : " ↓")}
+            </button>
+          ))}
+        </div>
+
         <p className="text-xs text-ink/50">{submissions.length} submissions</p>
       </div>
 
       {listError && <p className="mt-3 text-sm text-warn">{listError}</p>}
 
       <div className="mt-4 space-y-3">
-        {submissions.map((s) => {
+        {visibleSubmissions.map((s) => {
           const report = REPORTS[findTaskKey(s.task_id) ?? "sol"];
           const portrait = PORTRAITS.find((p) => p.key === s.rewrite_portrait);
           const expanded = expandedId === s.id;
