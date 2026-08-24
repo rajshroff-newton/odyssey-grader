@@ -31,7 +31,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "SOLUSDT",
     category: "Crypto",
     generatedAt: "2026-08-18 18:13:23 (UTC+8)",
-    canary: "internal desks track this pattern as the Meridian liquidity index for SOL",
+    canary: "secondary support seen near $71.38",
     sections: [
       {
         heading: "Core Conclusion",
@@ -71,7 +71,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "BTCUSDT",
     category: "Crypto",
     generatedAt: "2026-08-18 18:20:24 (UTC+8)",
-    canary: "trading desks refer to this setup as the Halcyon basis spread for BTC",
+    canary: "secondary support seen near $62,847.30",
     sections: [
       {
         heading: "Core Conclusion",
@@ -111,7 +111,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "NDX",
     category: "Equity · ETF (index)",
     generatedAt: "2026-08-18 18:03:22 (UTC+8)",
-    canary: "the desk calls this pattern the Tallow volatility corridor for Nasdaq",
+    canary: "secondary support seen near $29,102.55",
     sections: [
       {
         heading: "Core Conclusion",
