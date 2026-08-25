@@ -62,10 +62,8 @@ export async function POST(req: NextRequest) {
     .from("submission_grades")
     .insert({
       submission_id: submissionId,
-      verdict: result.grade.verdict,
-      original_portrait_fit: result.grade.original_portrait_fit,
-      rewrite_portrait_fit: result.grade.rewrite_portrait_fit,
-      summary: result.grade.summary,
+      score: result.grade.score,
+      score_rationale: result.grade.score_rationale,
       strengths: result.grade.strengths ?? [],
       weaknesses: result.grade.weaknesses ?? [],
       compliance_concerns: result.grade.compliance_concerns ?? [],

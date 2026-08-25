@@ -20,6 +20,10 @@ export type Portrait = {
   typicalFailureMode: string;
   concreteExamples: string;
   rewriteMust: string;
+  // The exact per-portrait rewrite checklist from the Attempter Guidelines
+  // - this is the primary grading rubric now, not a comparison against
+  // the original report.
+  rewriteChecklist: string[];
 };
 
 export const RISK_APPETITE_NOTE =
@@ -54,6 +58,14 @@ export const PORTRAITS: Portrait[] = [
       "Reaction test: \"If it fails 63.10 with the ratio through 90, look to 60.5.\" A G1 reader does not know which ratio, what \"look to\" means, or whether 60.5 is good or bad news. They stop reading. Aimed at a G1 reader, this sentence rates a 1.\n\nOpening that works: \"Silver fell about 1.7% today. The main reason: factory demand for silver is softening, and silver is used heavily in electronics, so it doesn't always move with gold even though both are precious metals. Nothing here changes the long term picture, but expect more day to day swings until the Fed meeting notes come out on 19 August.\"\n\nOpening that fails: \"XAGUSDT decoupling from real rates as the gold/silver ratio breaches 88 with COMEX inventories drawing two consecutive weeks.\" Every clause requires knowledge they don't have.",
     rewriteMust:
       "A plain-language takeaway, every term from the G1 must-explain list handled in line, prominent plain risk framing. No entries, stops, targets, or leverage tactics.",
+    rewriteChecklist: [
+      "Is something happening that affects their money, and should they be worried or relaxed? That is verbatim why this reader opens a report. If yours never answers it, it failed regardless of what else it does.",
+      "Can they understand the first two sentences? Three unfamiliar terms early and they stop reading. Every term from the must-explain list (funding rate, liquidation, RSI, DXY, support and resistance, the lot) gets explained in line, right where it's used.",
+      "Did you explain the mechanism, not just name the event? For this reader, CPI or FOMC gets name and mechanism. \"The Fed meeting moved markets\" tells them nothing; why it moved their coin does.",
+      "What's the plain-language takeaway, and what should they watch? That's the ceiling: a directional read plus what to keep an eye on. No entries, no stops, no targets, no leverage tactics. Ever. They can execute anything you write, which is exactly why you don't write it.",
+      "Is the risk stated plainly, prominently, where they can't miss it? Risk framing for G1 is mandatory, in plain words, not buried in a final clause.",
+      "Does it read as calm orientation, not instructions? They said it themselves: \"I don't want to be told what to do. I want to understand what's going on.\"",
+    ],
   },
   {
     key: "G2",
@@ -85,6 +97,14 @@ export const PORTRAITS: Portrait[] = [
       "See the gloss-rule examples above - they are the primary scoring reference for this portrait.",
     rewriteMust:
       "Direction plus driver plus invalidation level. Trading structure assumed. Any macro mechanism that carries the argument appears as an inline gloss of 5 to 12 words. No basics.",
+    rewriteChecklist: [
+      "Is there a setup here, what's driving it, and where am I wrong? Verbatim from the portrait. All three parts. A view with no invalidation level attached is the fastest way to lose this reader.",
+      "Did you commit? Hedged both-sides language that resolves to nothing is a listed failure. Say which side dominates.",
+      "What's the level? Direction plus driver plus invalidation. They mark their levels and always know where they're wrong before they enter; your report has to keep up with that.",
+      "Did you avoid teaching them anything they already know? Trading vocabulary - funding, liquidation, stops, position sizing, RSI - is never explained to G2. It insults them.",
+      "Is every macro mechanism glossed, not taught and not assumed? The 5-to-12-word inline gloss, embedded in the sentence that uses it. A teaching paragraph fails one script; assuming the mechanism fails the other. The gloss serves both, and it's the only form that does.",
+      "Could they trade off this? Levels, triggers, invalidation - scenario paths are fine. If their answer after reading is \"nothing, keep watching,\" the report is below band.",
+    ],
   },
   {
     key: "G3",
@@ -113,5 +133,16 @@ export const PORTRAITS: Portrait[] = [
       "Opening that fails: any report that opens by restating the day's price action and macro releases - they already have that.",
     rewriteMust:
       "Explicit trigger (if [indicator] [threshold] then [view changes]), price boundaries, at least one instrument-specific factor, full scenario paths. Target 5 where you can support a sourced mispricing thesis.",
+    rewriteChecklist: [
+      "What does the market currently believe? Say it plainly before you do anything else. You cannot position your read against the consensus, or with it, if you never state what the consensus is.",
+      "Do you agree with the crowd or not, and what did you check to decide? Disagreeing needs evidence, not attitude. Agreeing is fine too, but then your job shifts: show them where the trade breaks, which gauge warns first, or a cheaper way to hold it. Either way you did work they haven't done.",
+      "What is one thing in here this reader was not already tracking? They had the prices and the headlines before they opened your report. If every number is already on their screen, you wrote them nothing.",
+      "Where does each claim come from? Any statement about flows, positioning, or what the market is pricing gets a named source in the sentence. No source, no claim.",
+      "What exact level or print proves this wrong? Precise enough to set an alert on. \"We stay cautious\" is not a falsification condition.",
+      "What is the move in each scenario? Breaks up: then what. Breaks down: then what. Both paths, each with an action.",
+      "Would this argument survive swapping in a similar ticker? If yes, it is boilerplate. The reasoning has to hang on something specific to this instrument.",
+      "Is spot really the best expression? This reader trades options, funding, basis, pairs. If one of those is the smarter way to play your view, say so. A plain buy-here-sell-there wastes their toolkit.",
+      "Can someone score this in a month? If nobody could look back and say right or wrong, it is too vague to publish.",
+    ],
   },
 ];

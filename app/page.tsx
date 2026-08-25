@@ -6,10 +6,8 @@ import { PORTRAITS } from "@/data/portraits";
 
 type GradeRow = {
   submission_id?: string;
-  verdict: string;
-  original_portrait_fit: number;
-  rewrite_portrait_fit: number;
-  summary?: string;
+  score: number;
+  score_rationale?: string;
   strengths?: string[];
   weaknesses?: string[];
   compliance_concerns?: string[];
@@ -83,10 +81,10 @@ function keepLatestPerUserTask(rows: SubmissionRow[]): SubmissionRow[] {
   return Array.from(latestByKey.values());
 }
 
-function verdictColor(verdict: string) {
-  if (verdict === "better") return "border-ok bg-ok/10 text-ok";
-  if (verdict === "worse") return "border-warn bg-warn/10 text-warn";
-  return "border-line bg-paper text-ink/60";
+function scoreColor(score: number) {
+  if (score >= 4) return "border-ok bg-ok/10 text-ok";
+  if (score === 3) return "border-brass bg-brass/10 text-brass";
+  return "border-warn bg-warn/10 text-warn";
 }
 
 export default function GraderPage() {
@@ -276,11 +274,11 @@ export default function GraderPage() {
                 <div className="flex items-center gap-2">
                   {s.grade && (
                     <span
-                      className={`rounded border px-2 py-1 text-xs font-semibold uppercase tracking-wide ${verdictColor(
-                        s.grade.verdict
+                      className={`rounded border px-2 py-1 text-xs font-semibold uppercase tracking-wide ${scoreColor(
+                        s.grade.score
                       )}`}
                     >
-                      {s.grade.verdict.replace(/_/g, " ")}
+                      {s.grade.score} / 5
                     </span>
                   )}
                   <button
@@ -306,27 +304,8 @@ export default function GraderPage() {
               {s.grade && (
                 <div className="mt-3 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
                   <div>
-                    <p className="text-ink/40">Original fit</p>
-                    <p className="font-semibold">{s.grade.original_portrait_fit} / 5</p>
-                  </div>
-                  <div>
-                    <p className="text-ink/40">Rewrite fit</p>
-                    <p className="font-semibold">{s.grade.rewrite_portrait_fit} / 5</p>
-                  </div>
-                  <div>
-                    <p className="text-ink/40">Fit change</p>
-                    <p
-                      className={`font-semibold ${
-                        s.grade.rewrite_portrait_fit > s.grade.original_portrait_fit
-                          ? "text-ok"
-                          : s.grade.rewrite_portrait_fit < s.grade.original_portrait_fit
-                            ? "text-warn"
-                            : "text-ink/60"
-                      }`}
-                    >
-                      {s.grade.rewrite_portrait_fit - s.grade.original_portrait_fit > 0 ? "+" : ""}
-                      {s.grade.rewrite_portrait_fit - s.grade.original_portrait_fit}
-                    </p>
+                    <p className="text-ink/40">Portrait score</p>
+                    <p className="font-semibold">{s.grade.score} / 5</p>
                   </div>
                   <div>
                     <p className="text-ink/40">Word count</p>
@@ -384,7 +363,7 @@ export default function GraderPage() {
 
                   {s.grade && (
                     <div className="rounded border border-line bg-paper px-3 py-3 text-sm">
-                      <p className="font-medium text-ink">{s.grade.summary}</p>
+                      <p className="font-medium text-ink">{s.grade.score_rationale}</p>
 
                       {!!s.grade.strengths?.length && (
                         <div className="mt-2">

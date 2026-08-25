@@ -1,13 +1,9 @@
 import { REPORTS, fullReportText, TaskKey } from "@/data/reports";
 import { PORTRAITS, RISK_APPETITE_NOTE } from "@/data/portraits";
 
-export type GradeVerdict = "better" | "worse" | "about_the_same";
-
 export type Grade = {
-  verdict: GradeVerdict;
-  original_portrait_fit: number; // 1-5
-  rewrite_portrait_fit: number; // 1-5
-  summary: string;
+  score: number; // 1-5, per the fixed scale defined in the prompt
+  score_rationale: string;
   strengths: string[];
   weaknesses: string[];
   compliance_concerns: string[];
@@ -33,27 +29,31 @@ function buildPrompt(params: {
   const portrait = PORTRAITS.find((p) => p.key === params.portraitKey);
   if (!portrait) return { error: `No hardcoded portrait matches "${params.portraitKey}".` };
 
-  const system = `You are grading whether an expert's rewrite of a financial market report is an improvement over the original, strictly from the point of view of one specific target reader. You are not grading writing quality in the abstract - a rewrite that reads beautifully but doesn't serve this reader's actual needs is not an improvement, and a rewrite that reads plainly but is exactly what this reader needs is.
+  const system = `You are grading how well an expert's rewrite of a financial market report executes for one specific target reader (portrait). This is not a comparison to the original report - you are scoring the rewrite's execution against that portrait's own checklist, on its own merits.
 
-Judge only against the reader profile you're given. Do not apply your own general sense of good financial writing where it conflicts with what this specific reader wants.
+Do not weigh typos, spelling, or minor grammatical slips heavily. Focus entirely on substance: did the rewrite understand and serve this portrait's actual needs. A rewrite with a few typos but genuinely correct portrait execution should score well; a clean, typo-free rewrite that misunderstands the portrait should not.
 
-The profile below distinguishes vocabulary the reader already knows (explaining it is padding that displaces real content) from vocabulary that must be handled somehow (either explained plainly, for G1, or inline-glossed in 5 to 12 words without a teaching aside, for G2). Getting this distinction backwards - explaining what's assumed known, or assuming what needs handling - is itself a real failure mode, not a neutral choice, and should show up in your weaknesses if it happens.
+You will be given a fixed checklist for this specific portrait. Go through it item by item as your primary grading mechanism - each item is a real pass/fail (or partial) test, not a vague suggestion. Your strengths and weaknesses should be directly grounded in specific checklist items, citing the actual line or omission in the rewrite, not generic writing-quality observations.
 
-Where the profile includes a "typical failure" note or worked examples, treat those as your primary calibration reference for what counts as a strength or a weakness for this specific portrait - they are more reliable than your own general judgment.
+Score on this exact 1-5 scale:
 
-Also flag, separately from the portrait-fit judgment:
+1 - Spam entry. Zero use; could not be used for any portrait at all. Not a genuine attempt.
+2 - Does not understand the portrait. Most of the content is irrelevant to what this specific reader needs, even if the writing itself is competent.
+3 - Understands what needs to be done but didn't execute it properly. The right idea, meaningfully flawed or incomplete execution against the checklist.
+4 - Good job. Serves the portrait well, with some real areas for improvement against the checklist.
+5 - Perfect. Fully satisfies the checklist for this portrait with no meaningful gaps.
+
+Also flag, separately from the checklist score:
 - Any invented data - numbers, prices, or claims that don't appear in the original and aren't clearly framed as the writer's own analysis (as opposed to a fact).
 - Any compliance problem - unconditional buy/sell instructions, promised returns, or advice with no stated condition attached. Conditional scenario reasoning ("if X then Y, target Z, invalidated below W") is fine and is not a violation.
 
 Respond with ONLY a JSON object - no markdown code fences, no preamble, no text outside the JSON. Match this exact shape:
 
 {
-  "verdict": "better" | "worse" | "about_the_same",
-  "original_portrait_fit": <integer 1-5, how well the ORIGINAL report serves this reader>,
-  "rewrite_portrait_fit": <integer 1-5, how well the REWRITE serves this reader>,
-  "summary": "<2-3 sentences giving your overall verdict and why>",
-  "strengths": ["<specific thing the rewrite does better, citing the actual line or change>", ...],
-  "weaknesses": ["<specific thing the rewrite does worse or is missing>", ...],
+  "score": <integer 1-5, per the scale above>,
+  "score_rationale": "<2-4 sentences explaining the score, grounded in specific checklist items>",
+  "strengths": ["<specific checklist item the rewrite satisfies, citing the actual line>", ...],
+  "weaknesses": ["<specific checklist item the rewrite fails or only partially meets, citing what's missing>", ...],
   "compliance_concerns": ["<specific compliance issue, quoting the phrase>", ...],
   "hallucination_check": "<one sentence: does the rewrite appear to invent data not present in or derivable from the original? Name the specific figure if so, or state that none was found>"
 }
@@ -61,12 +61,12 @@ Respond with ONLY a JSON object - no markdown code fences, no preamble, no text 
 strengths, weaknesses, and compliance_concerns should be empty arrays if there's nothing to report - do not pad them with generic filler.`;
 
   const glossSection = portrait.glossRule
-    ? `\n\nThe gloss-vs-teach rule for this portrait (read carefully, this is the primary scoring mechanism):\n${portrait.glossRule}`
+    ? `\n\nThe gloss-vs-teach rule for this portrait (read carefully, this is a primary scoring mechanism):\n${portrait.glossRule}`
     : "";
 
-  const examplesSection = portrait.concreteExamples
-    ? `\n\nConcrete calibration examples for this portrait:\n${portrait.concreteExamples}`
-    : "";
+  const checklistSection = portrait.rewriteChecklist
+    .map((item, i) => `${i + 1}. ${item}`)
+    .join("\n\n");
 
   const user = `TARGET READER PROFILE (${portrait.label}, ${portrait.band})
 
@@ -84,16 +84,18 @@ Vocabulary that must be handled (explained plainly for G1, or inline-glossed for
 ${glossSection}
 Actionability ceiling (what the content is allowed to give them): ${portrait.actionCeiling}
 Risk framing expectation: ${portrait.riskFraming}
-Typical failure mode against this portrait: ${portrait.typicalFailureMode}
-${examplesSection}
-
-What a good rewrite for this reader must do: ${portrait.rewriteMust}
 
 Note on risk appetite: ${RISK_APPETITE_NOTE}
 
 ---
 
-ORIGINAL REPORT (${report.title}, ${report.ticker})
+THE REWRITE CHECKLIST FOR THIS PORTRAIT (your primary grading rubric)
+
+${checklistSection}
+
+---
+
+ORIGINAL REPORT (${report.title}, ${report.ticker}) - for context on the underlying facts only, not for comparison scoring
 
 ${fullReportText(report)}
 
@@ -105,7 +107,7 @@ ${params.rewriteText}
 
 ---
 
-Judge whether the rewrite is better, worse, or about the same as the original for this specific reader, and respond with the JSON object described in your instructions.`;
+Grade the rewrite against the checklist above for this specific portrait, and respond with the JSON object described in your instructions.`;
 
   return { system, user };
 }

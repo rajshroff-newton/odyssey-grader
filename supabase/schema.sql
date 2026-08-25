@@ -52,3 +52,20 @@ alter table public.submission_grades
 -- keep it.
 alter table public.submission_grades
   alter column confidence drop not null;
+
+-- Grading model changed: instead of comparing the rewrite against the
+-- original (verdict + two fit scores), grades are now a single 1-5 score
+-- of how well the rewrite executes the specific checklist for its
+-- assigned portrait, per the Attempter Guidelines. verdict,
+-- original_portrait_fit, rewrite_portrait_fit, and summary are superseded
+-- by score/score_rationale below - relaxed to nullable rather than
+-- dropped, so existing graded rows keep their old values for reference.
+alter table public.submission_grades
+  alter column verdict drop not null,
+  alter column original_portrait_fit drop not null,
+  alter column rewrite_portrait_fit drop not null,
+  alter column summary drop not null;
+
+alter table public.submission_grades
+  add column if not exists score int,
+  add column if not exists score_rationale text;
