@@ -35,27 +35,29 @@ Do not weigh typos, spelling, or minor grammatical slips heavily. Focus entirely
 
 You will be given a fixed checklist for this specific portrait. Go through it item by item as your primary grading mechanism - each item is a real pass/fail (or partial) test, not a vague suggestion. Your strengths and weaknesses should be directly grounded in specific checklist items, citing the actual line or omission in the rewrite, not generic writing-quality observations.
 
+Work through the checklist and write out your strengths and weaknesses BEFORE you decide on a score - the score is a conclusion you draw from that breakdown, not a separate first impression. The JSON shape below is ordered that way on purpose; fill it in top to bottom in that order.
+
 Score on this exact 1-5 scale:
 
 1 - Spam entry. Zero use; could not be used for any portrait at all. Not a genuine attempt.
 2 - Does not understand the portrait. Most of the content is irrelevant to what this specific reader needs, even if the writing itself is competent.
 3 - Understands what needs to be done but didn't execute it properly. The right idea, meaningfully flawed or incomplete execution against the checklist.
-4 - Good job. Serves the portrait well, with some real areas for improvement against the checklist.
-5 - Perfect. Fully satisfies the checklist for this portrait with no meaningful gaps.
+4 - Good job. Serves the portrait well, but your weaknesses list below is not empty - there is at least one real, non-trivial gap against the checklist.
+5 - Perfect. Your weaknesses list below must be empty. If you have written down even one substantive weakness, the score cannot be a 5 - it is at most a 4. This is a hard rule, not a judgment call: score and weaknesses must agree.
 
 Also flag, separately from the checklist score:
 - Any invented data - numbers, prices, or claims that don't appear in the original and aren't clearly framed as the writer's own analysis (as opposed to a fact).
 - Any compliance problem - unconditional buy/sell instructions, promised returns, or advice with no stated condition attached. Conditional scenario reasoning ("if X then Y, target Z, invalidated below W") is fine and is not a violation.
 
-Respond with ONLY a JSON object - no markdown code fences, no preamble, no text outside the JSON. Match this exact shape:
+Respond with ONLY a JSON object - no markdown code fences, no preamble, no text outside the JSON. Match this exact shape, in this exact field order:
 
 {
-  "score": <integer 1-5, per the scale above>,
-  "score_rationale": "<2-4 sentences explaining the score, grounded in specific checklist items>",
   "strengths": ["<specific checklist item the rewrite satisfies, citing the actual line>", ...],
   "weaknesses": ["<specific checklist item the rewrite fails or only partially meets, citing what's missing>", ...],
   "compliance_concerns": ["<specific compliance issue, quoting the phrase>", ...],
-  "hallucination_check": "<one sentence: does the rewrite appear to invent data not present in or derivable from the original? Name the specific figure if so, or state that none was found>"
+  "hallucination_check": "<one sentence: does the rewrite appear to invent data not present in or derivable from the original? Name the specific figure if so, or state that none was found>",
+  "score": <integer 1-5, consistent with the weaknesses list above per the hard rule>,
+  "score_rationale": "<2-4 sentences explaining the score, grounded in the specific checklist items above>"
 }
 
 strengths, weaknesses, and compliance_concerns should be empty arrays if there's nothing to report - do not pad them with generic filler.`;
@@ -164,8 +166,22 @@ export async function gradeSubmission(params: {
   if (!text) return { error: "No text content in the model's response." };
 
   try {
-    const parsed = JSON.parse(stripCodeFences(text));
-    return { grade: parsed as Grade, raw: text, promptUser: prompt.user, promptSystem: prompt.system };
+    const parsed = JSON.parse(stripCodeFences(text)) as Grade;
+
+    // Hard rule, enforced in code rather than trusted to the model: a score
+    // of 5 requires an empty weaknesses list. If the model still produces
+    // both a 5 and a non-empty weaknesses array despite the prompt asking
+    // it to reason in that order, cap it at 4 here rather than let the
+    // inconsistency reach the grader. This is a backstop, not the primary
+    // fix - the prompt itself now asks for strengths/weaknesses before the
+    // score specifically to make this less likely to happen in the first
+    // place.
+    if (parsed.score === 5 && Array.isArray(parsed.weaknesses) && parsed.weaknesses.length > 0) {
+      parsed.score = 4;
+      parsed.score_rationale = `[Auto-corrected from 5 to 4: the model listed ${parsed.weaknesses.length} weakness(es) below, which is inconsistent with a perfect score.] ${parsed.score_rationale}`;
+    }
+
+    return { grade: parsed, raw: text, promptUser: prompt.user, promptSystem: prompt.system };
   } catch {
     return { error: `Could not parse the model's response as JSON. Raw response: ${text.slice(0, 500)}` };
   }
