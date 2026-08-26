@@ -111,7 +111,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "NDX",
     category: "Equity · ETF (index)",
     generatedAt: "2026-08-18 18:03:22 (UTC+8)",
-    canary: "secondary support seen near $29,102.55",
+    canary: "worth watching if price slips toward $29,102.55",
     sections: [
       {
         heading: "Core Conclusion",
