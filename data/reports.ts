@@ -31,7 +31,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "SOLUSDT",
     category: "Crypto",
     generatedAt: "2026-08-18 18:13:23 (UTC+8)",
-    canary: "secondary support seen near $71.38",
+    canary: "options put/call ratio near 0.62, lowest in three weeks",
     sections: [
       {
         heading: "Core Conclusion",
@@ -71,7 +71,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "BTCUSDT",
     category: "Crypto",
     generatedAt: "2026-08-18 18:20:24 (UTC+8)",
-    canary: "worth watching if price slips toward $62,847.30",
+    canary: "worth watching if price slips toward $61,940.15",
     sections: [
       {
         heading: "Core Conclusion",
@@ -111,7 +111,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "NDX",
     category: "Equity · ETF (index)",
     generatedAt: "2026-08-18 18:03:22 (UTC+8)",
-    canary: "worth watching if price slips toward $29,102.55",
+    canary: "worth watching if price slips toward $27,850.60",
     sections: [
       {
         heading: "Core Conclusion",
@@ -151,7 +151,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "MU",
     category: "Equity",
     generatedAt: "2026-08-27 16:16:52",
-    canary: "worth watching if price slips toward $897.32",
+    canary: "options put/call ratio near 0.54, lowest in a month",
     sections: [
       {
         heading: "Core Conclusion",
@@ -183,7 +183,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "IBIT",
     category: "Crypto ETF",
     generatedAt: "2026-08-27 16:18:22",
-    canary: "worth watching if price slips toward $44.12",
+    canary: "options put/call ratio near 0.66, lowest in three weeks",
     sections: [
       {
         heading: "Core Conclusion",
@@ -215,7 +215,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "XRP",
     category: "Crypto",
     generatedAt: "2026-08-27 16:15:53",
-    canary: "worth watching if price slips toward $1.37",
+    canary: "options put/call ratio near 0.59, lowest in a month",
     sections: [
       {
         heading: "Core Conclusion",
@@ -247,7 +247,7 @@ export const REPORTS: Record<TaskKey, ReportTask> = {
     ticker: "S&P 500",
     category: "Equity Index",
     generatedAt: "2026-08-27 16:11:24",
-    canary: "worth watching if price slips toward $7,681.24",
+    canary: "options put/call ratio near 0.91, lowest in six weeks",
     sections: [
       {
         heading: "Core Conclusion",
