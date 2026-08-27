@@ -66,13 +66,17 @@ function sortSubmissions(rows: SubmissionRow[], key: SortKey, dir: SortDir): Sub
   return sorted;
 }
 
-// Keeps only the most recent submission per (email, task) pair - same
-// grouping key the main app uses for attempt_number, so "latest" here
-// matches what "latest attempt" means everywhere else in this project.
+// Keeps only the most recent submission per (email, task, portrait)
+// triple. Portrait has to be part of the key: a dual-portrait report
+// (MU/IBIT/XRP/S&P 500) submits one row for G1 and a separate row for G3
+// under the same email and task_id, and those are two distinct
+// deliverables, not competing attempts at the same one - grouping by
+// (email, task) alone would silently drop whichever of the two got
+// inserted first (always G1, since the submit order is G1 then G3).
 function keepLatestPerUserTask(rows: SubmissionRow[]): SubmissionRow[] {
   const latestByKey = new Map<string, SubmissionRow>();
   for (const row of rows) {
-    const key = `${row.attempter_email.toLowerCase()}::${row.task_id}`;
+    const key = `${row.attempter_email.toLowerCase()}::${row.task_id}::${row.rewrite_portrait}`;
     const existing = latestByKey.get(key);
     if (!existing || new Date(row.created_at) > new Date(existing.created_at)) {
       latestByKey.set(key, row);
@@ -239,7 +243,8 @@ export default function GraderPage() {
 
       <div className="mt-4 space-y-3">
         {visibleSubmissions.map((s) => {
-          const report = REPORTS[findTaskKey(s.task_id) ?? "sol"];
+          const matchedKey = findTaskKey(s.task_id);
+          const report = matchedKey ? REPORTS[matchedKey] : null;
           const portrait = PORTRAITS.find((p) => p.key === s.rewrite_portrait);
           const expanded = expandedId === s.id;
 
@@ -266,7 +271,14 @@ export default function GraderPage() {
                     <span className="font-normal text-ink/50">({s.attempter_email})</span>
                   </p>
                   <p className="text-xs text-ink/50">
-                    {report.label} · portrait {s.rewrite_portrait} · attempt{" "}
+                    {report ? (
+                      <>{report.label} · </>
+                    ) : (
+                      <span className="font-semibold text-warn">
+                        Unrecognized task_id "{s.task_id}" ·{" "}
+                      </span>
+                    )}
+                    portrait {s.rewrite_portrait} · attempt{" "}
                     {s.attempt_number ?? "?"} · {new Date(s.created_at).toLocaleString()}
                   </p>
                 </div>
@@ -335,16 +347,26 @@ export default function GraderPage() {
                         Original report
                       </p>
                       <div className="mt-1 max-h-96 overflow-y-auto rounded border border-line px-3 py-2">
-                        {report.sections.map((sec) => (
-                          <div key={sec.heading} className="mb-3 last:mb-0">
-                            <p className="font-mono text-[11px] font-semibold uppercase tracking-wide text-brass">
-                              {sec.heading}
-                            </p>
-                            <p className="mt-0.5 whitespace-pre-line text-[13px] leading-relaxed text-ink/90">
-                              {sec.body}
-                            </p>
-                          </div>
-                        ))}
+                        {report ? (
+                          report.sections.map((sec) => (
+                            <div key={sec.heading} className="mb-3 last:mb-0">
+                              <p className="font-mono text-[11px] font-semibold uppercase tracking-wide text-brass">
+                                {sec.heading}
+                              </p>
+                              <p className="mt-0.5 whitespace-pre-line text-[13px] leading-relaxed text-ink/90">
+                                {sec.body}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-warn">
+                            Can't show the original report - this submission's
+                            task_id ("{s.task_id}") doesn't match any report
+                            this grader knows about. The grader's copy of the
+                            report data is probably out of date - check
+                            data/reports.ts has been deployed.
+                          </p>
+                        )}
                       </div>
                     </div>
 
