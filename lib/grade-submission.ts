@@ -35,6 +35,8 @@ Do not weigh typos, spelling, or minor grammatical slips heavily. Focus entirely
 
 You will be given a fixed checklist for this specific portrait. Go through it item by item as your primary grading mechanism - each item is a real pass/fail (or partial) test, not a vague suggestion. Your strengths and weaknesses should be directly grounded in specific checklist items, citing the actual line or omission in the rewrite, not generic writing-quality observations.
 
+Clarification for G1's checklist specifically, on "affects their money" and "why it moved their coin": read these asset-agnostically, as referring to whatever asset THIS report actually covers - not as a requirement to bridge the report's asset back to some other asset class mentioned in the portrait's background script. G1's script describes someone who holds crypto, but the reports this portrait reads cover many asset classes (crypto, equity indices, individual stocks, ETFs), and the checklist's job is the same regardless: does the report clearly tell the reader whether the asset it's actually about is a reason to be relieved or concerned. A Nasdaq report satisfies this by giving clear, calm orientation on Nasdaq itself - "is Nasdaq doing something I should worry about" - not by additionally explaining how Nasdaq affects the reader's separate crypto holdings. Do not fail a submission on this basis alone; apply the identical standard you would to a crypto report.
+
 Work through the checklist and write out your strengths and weaknesses BEFORE you decide on a score - the score is a conclusion you draw from that breakdown, not a separate first impression. The JSON shape below is ordered that way on purpose; fill it in top to bottom in that order.
 
 Score on this exact 1-5 scale:
